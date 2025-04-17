@@ -34,18 +34,36 @@ LOG_MODULE_REGISTER(LOG_MODULE_NAME);
 /* Resource state variables */
 static int8_t command[MAX_INSTANCE_COUNT];
 static uint8_t dimming_level[MAX_INSTANCE_COUNT];
+static int8_t default_dimming_level[MAX_INSTANCE_COUNT];
 static bool failure[MAX_INSTANCE_COUNT];
+static double lamp_operating_hours[MAX_INSTANCE_COUNT];
 
 static struct lwm2m_engine_obj lamp;
 static struct lwm2m_engine_obj_field fields[] = {
     OBJ_FIELD_DATA(UCIFI_LAMP_COMMAND_RID, RW, S8),
-    OBJ_FIELD_DATA(UCIFI_LAMP_DIMMING_LEVEL_RID, RW, U8),
-    OBJ_FIELD_DATA(UCIFI_LAMP_FAILURE_RID, RW, BOOL),
+    OBJ_FIELD_DATA(UCIFI_LAMP_DIMMING_LEVEL_RID, R, U8),
+    OBJ_FIELD_DATA(UCIFI_LAMP_DEFAULT_DIMMING_LEVEL_RID, RW_OPT, S8),
+    OBJ_FIELD_DATA(UCIFI_LAMP_FAILURE_RID, R, BOOL),
+    OBJ_FIELD_DATA(UCIFI_LAMP_OPERATING_HOURS_RID, R_OPT, FLOAT),
+    OBJ_FIELD_EXECUTE_OPT(UCIFI_LAMP_RESET_HOURS_RID),
 };
 
 static struct lwm2m_engine_obj_inst inst[MAX_INSTANCE_COUNT];
 static struct lwm2m_engine_res res[MAX_INSTANCE_COUNT][LAMP_MAX_ID];
 static struct lwm2m_engine_res_inst res_inst[MAX_INSTANCE_COUNT][RESOURCE_INSTANCE_COUNT];
+
+static int reset_lamp_hours_cb(uint16_t obj_inst_id, uint8_t *args, uint16_t args_len)
+{
+	for (int i = 0; i < MAX_INSTANCE_COUNT; i++) {
+		if (inst[i].obj && inst[i].obj_inst_id == obj_inst_id) {
+			lamp_operating_hours[i] = 0;			
+			lwm2m_notify_observer(UCIFI_OBJECT_LAMP_ID, obj_inst_id, UCIFI_LAMP_OPERATING_HOURS_RID);
+			LOG_INF("Lamp operating hours reset for instance %d", obj_inst_id);
+			return 0;
+		}
+	}
+	return -ENOENT;
+}
 
 static struct lwm2m_engine_obj_inst *lamp_create(uint16_t obj_inst_id)
 {
@@ -73,9 +91,15 @@ static struct lwm2m_engine_obj_inst *lamp_create(uint16_t obj_inst_id)
                       &command[index], sizeof(command[index]));
     INIT_OBJ_RES_DATA(UCIFI_LAMP_DIMMING_LEVEL_RID, res[index], i, res_inst[index], j,
                       &dimming_level[index], sizeof(dimming_level[index]));
+    INIT_OBJ_RES_DATA(UCIFI_LAMP_DEFAULT_DIMMING_LEVEL_RID, res[index], i, res_inst[index], j,
+                      &default_dimming_level[index], sizeof(default_dimming_level[index]));
     INIT_OBJ_RES_DATA(UCIFI_LAMP_FAILURE_RID, res[index], i, res_inst[index], j,
                       &failure[index], sizeof(failure[index]));
-
+    INIT_OBJ_RES_DATA(UCIFI_LAMP_OPERATING_HOURS_RID, res[index], i, res_inst[index], j,
+          	      &lamp_operating_hours[index], sizeof(double));
+    INIT_OBJ_RES_EXECUTE(UCIFI_LAMP_RESET_HOURS_RID, res[index], i, 
+		      reset_lamp_hours_cb);
+   
     inst[index].resources = res[index];
     inst[index].resource_count = i;
 
