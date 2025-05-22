@@ -18,12 +18,12 @@ LOG_MODULE_REGISTER(LOG_MODULE_NAME);
 #define EM_MAX_ID 7
 #define RESOURCE_INSTANCE_COUNT (EM_MAX_ID)
 
-static float voltage[MAX_INSTANCE_COUNT];
-static float current[MAX_INSTANCE_COUNT];
-static float frequency[MAX_INSTANCE_COUNT];
-static float active_power[MAX_INSTANCE_COUNT];
-static float power_factor[MAX_INSTANCE_COUNT];
-static float energy[MAX_INSTANCE_COUNT];
+static double voltage[MAX_INSTANCE_COUNT];
+static double current[MAX_INSTANCE_COUNT];
+static double frequency[MAX_INSTANCE_COUNT];
+static double active_power[MAX_INSTANCE_COUNT];
+static double power_factor[MAX_INSTANCE_COUNT];
+static double energy[MAX_INSTANCE_COUNT];
 
 static struct lwm2m_engine_obj electrical_monitor;
 static struct lwm2m_engine_obj_field fields[] = {
@@ -64,6 +64,15 @@ static struct lwm2m_engine_obj_inst *em_create(uint16_t obj_inst_id)
         return NULL;
     }
 
+
+    /* Set default values */
+    voltage[index] = 0.0;
+    current[index] = 0.0;
+    frequency[index] = 60.0;
+    active_power[index] = 0.0;
+    power_factor[index] = 1.0;
+    energy[index] = 0.0;
+
     memset(res[index], 0, sizeof(res[index]));
     init_res_instance(res_inst[index], ARRAY_SIZE(res_inst[index]));
 
@@ -100,6 +109,7 @@ static int ucifi_electrical_monitor_init(void)
     electrical_monitor.create_cb = em_create;
 
     lwm2m_register_obj(&electrical_monitor);
+
     return 0;
 }
 
