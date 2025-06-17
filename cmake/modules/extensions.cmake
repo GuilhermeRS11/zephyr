@@ -585,7 +585,7 @@ endfunction()
 # constructor but must be called explicitly on CMake libraries that do
 # not use a zephyr library constructor.
 function(zephyr_append_cmake_library library)
-  if(TARGET zephyr_prebuilt)
+  if(TARGET zephyr_pre0)
     message(WARNING
       "zephyr_library() or zephyr_library_named() called in Zephyr CMake "
       "application mode. `${library}` will not be treated as a Zephyr library."
@@ -5288,6 +5288,7 @@ function(zephyr_iterable_section)
   set(options     "ALIGN_WITH_INPUT;NUMERIC")
   set(single_args "GROUP;LMA;NAME;SUBALIGN;VMA")
   set(multi_args  "")
+  set(subalign "")
   set(align_input)
   cmake_parse_arguments(SECTION "${options}" "${single_args}" "${multi_args}" ${ARGN})
 
@@ -5297,10 +5298,8 @@ function(zephyr_iterable_section)
     )
   endif()
 
-  if(NOT DEFINED SECTION_SUBALIGN)
-    message(FATAL_ERROR "zephyr_iterable_section(${ARGV0} ...) missing "
-                        "required argument: SUBALIGN"
-    )
+  if(DEFINED SECTION_SUBALIGN)
+    set(subalign "SUBALIGN ${SECTION_SUBALIGN}")
   endif()
 
   if(SECTION_ALIGN_WITH_INPUT)
@@ -5321,7 +5320,7 @@ function(zephyr_iterable_section)
     NAME ${SECTION_NAME}_area
     GROUP "${SECTION_GROUP}"
     VMA "${SECTION_VMA}" LMA "${SECTION_LMA}"
-    NOINPUT ${align_input} SUBALIGN ${SECTION_SUBALIGN}
+    NOINPUT ${align_input} ${subalign}
   )
   zephyr_linker_section_configure(
     SECTION ${SECTION_NAME}_area
@@ -5960,6 +5959,7 @@ function(add_llext_target target_name)
             $<TARGET_PROPERTY:bintools,elfconvert_flag_final>
     COMMAND ${slid_inject_cmd}
     DEPENDS ${llext_proc_target} ${llext_pkg_input}
+    COMMAND_EXPAND_LISTS
   )
 
   # Add user-visible target and dependency, and fill in properties
