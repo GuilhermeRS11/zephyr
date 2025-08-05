@@ -15,7 +15,7 @@ LOG_MODULE_REGISTER(LOG_MODULE_NAME);
 #define EM_VERSION_MINOR 0
 
 #define MAX_INSTANCE_COUNT CONFIG_LWM2M_UCIFI_ELECTRICAL_MONITOR_INSTANCE_COUNT
-#define EM_MAX_ID 7
+#define EM_MAX_ID 35
 #define RESOURCE_INSTANCE_COUNT (EM_MAX_ID)
 
 static double voltage[MAX_INSTANCE_COUNT];
@@ -24,6 +24,35 @@ static double frequency[MAX_INSTANCE_COUNT];
 static double active_power[MAX_INSTANCE_COUNT];
 static double power_factor[MAX_INSTANCE_COUNT];
 static double energy[MAX_INSTANCE_COUNT];
+static double low_pf_threshold[MAX_INSTANCE_COUNT];
+static bool low_pf[MAX_INSTANCE_COUNT];
+static double low_power_threshold[MAX_INSTANCE_COUNT];
+static double low_power_threshold_low_dim[MAX_INSTANCE_COUNT];
+static bool low_power[MAX_INSTANCE_COUNT];
+static double high_power_threshold[MAX_INSTANCE_COUNT];
+static double high_power_threshold_low_dim[MAX_INSTANCE_COUNT];
+static bool high_power[MAX_INSTANCE_COUNT];
+static double low_current_threshold[MAX_INSTANCE_COUNT];
+static bool low_current[MAX_INSTANCE_COUNT];
+static double high_current_threshold[MAX_INSTANCE_COUNT];
+static bool high_current[MAX_INSTANCE_COUNT];
+static double low_voltage_threshold[MAX_INSTANCE_COUNT];
+static bool low_voltage[MAX_INSTANCE_COUNT];
+static double high_voltage_threshold[MAX_INSTANCE_COUNT];
+static bool high_voltage[MAX_INSTANCE_COUNT];
+static double critical_inrush_threshold[MAX_INSTANCE_COUNT];
+static bool critical_inrush[MAX_INSTANCE_COUNT];
+static double min_inrush_current[MAX_INSTANCE_COUNT];
+static double max_inrush_current[MAX_INSTANCE_COUNT];
+static double latest_inrush_current[MAX_INSTANCE_COUNT];
+static double reactive_power[MAX_INSTANCE_COUNT];
+static double reactive_energy[MAX_INSTANCE_COUNT];
+static int32_t dimming_level[MAX_INSTANCE_COUNT];
+static int64_t timestamp[MAX_INSTANCE_COUNT];
+static double fractional_timestamp[MAX_INSTANCE_COUNT];
+static int32_t quality_indicator[MAX_INSTANCE_COUNT];
+static int32_t quality_level[MAX_INSTANCE_COUNT];
+
 
 static struct lwm2m_engine_obj electrical_monitor;
 static struct lwm2m_engine_obj_field fields[] = {
@@ -34,6 +63,34 @@ static struct lwm2m_engine_obj_field fields[] = {
     OBJ_FIELD_DATA(UCIFI_EM_POWER_FACTOR_RID, R_OPT, FLOAT),
     OBJ_FIELD_DATA(UCIFI_EM_CUMULATED_ACTIVE_ENERGY_RID, R_OPT, FLOAT),
     OBJ_FIELD_EXECUTE_OPT(UCIFI_EM_ENERGY_RESET_RID),
+    OBJ_FIELD_DATA(UCIFI_EM_LOW_PF_THRESHOLD_RID, RW_OPT, FLOAT),
+    OBJ_FIELD_DATA(UCIFI_EM_LOW_PF_RID, R_OPT, BOOL),
+    OBJ_FIELD_DATA(UCIFI_EM_LOW_POWER_THRESHOLD_RID, RW_OPT, FLOAT),
+    OBJ_FIELD_DATA(UCIFI_EM_LOW_POWER_THRESHOLD_LOW_DIM_RID, RW_OPT, FLOAT),
+    OBJ_FIELD_DATA(UCIFI_EM_LOW_POWER_RID, R_OPT, BOOL),
+    OBJ_FIELD_DATA(UCIFI_EM_HIGH_POWER_THRESHOLD_RID, RW_OPT, FLOAT),
+    OBJ_FIELD_DATA(UCIFI_EM_HIGH_POWER_THRESHOLD_LOW_DIM_RID, RW_OPT, FLOAT),
+    OBJ_FIELD_DATA(UCIFI_EM_HIGH_POWER_RID, R_OPT, BOOL),
+    OBJ_FIELD_DATA(UCIFI_EM_LOW_CURRENT_THRESHOLD_RID, RW_OPT, FLOAT),
+    OBJ_FIELD_DATA(UCIFI_EM_LOW_CURRENT_RID, R_OPT, BOOL),
+    OBJ_FIELD_DATA(UCIFI_EM_HIGH_CURRENT_THRESHOLD_RID, RW_OPT, FLOAT),
+    OBJ_FIELD_DATA(UCIFI_EM_HIGH_CURRENT_RID, R_OPT, BOOL),
+    OBJ_FIELD_DATA(UCIFI_EM_LOW_VOLTAGE_THRESHOLD_RID, RW_OPT, FLOAT),
+    OBJ_FIELD_DATA(UCIFI_EM_LOW_VOLTAGE_RID, R_OPT, BOOL),
+    OBJ_FIELD_DATA(UCIFI_EM_HIGH_VOLTAGE_THRESHOLD_RID, RW_OPT, FLOAT),
+    OBJ_FIELD_DATA(UCIFI_EM_HIGH_VOLTAGE_RID, R_OPT, BOOL),
+    OBJ_FIELD_DATA(UCIFI_EM_CRITICAL_INRUSH_THRESHOLD_RID, RW_OPT, FLOAT),
+    OBJ_FIELD_DATA(UCIFI_EM_CRITICAL_INRUSH_RID, R_OPT, BOOL),
+    OBJ_FIELD_DATA(UCIFI_EM_MIN_INRUSH_CURRENT_RID, R_OPT, FLOAT),
+    OBJ_FIELD_DATA(UCIFI_EM_MAX_INRUSH_CURRENT_RID, R_OPT, FLOAT),
+    OBJ_FIELD_DATA(UCIFI_EM_LATEST_INRUSH_CURRENT_RID, R_OPT, FLOAT),
+    OBJ_FIELD_DATA(UCIFI_EM_REACTIVE_POWER_RID, R_OPT, FLOAT),
+    OBJ_FIELD_DATA(UCIFI_EM_REACTIVE_ENERGY_RID, R_OPT, FLOAT),
+    OBJ_FIELD_DATA(UCIFI_EM_DIMMING_LEVEL_RID, R_OPT, S32),
+    OBJ_FIELD_DATA(UCIFI_EM_TIMESTAMP_RID, R_OPT, TIME),
+    OBJ_FIELD_DATA(UCIFI_EM_FRACTIONAL_TIMESTAMP_RID, R_OPT, FLOAT),
+    OBJ_FIELD_DATA(UCIFI_EM_MEASUREMENT_QUALITY_INDICATOR_RID, R_OPT, S32),
+    OBJ_FIELD_DATA(UCIFI_EM_MEASUREMENT_QUALITY_LEVEL_RID, R_OPT, S32),
 };
 
 static struct lwm2m_engine_obj_inst inst[MAX_INSTANCE_COUNT];
@@ -64,7 +121,6 @@ static struct lwm2m_engine_obj_inst *em_create(uint16_t obj_inst_id)
         return NULL;
     }
 
-
     /* Set default values */
     voltage[index] = 0.0;
     current[index] = 0.0;
@@ -72,6 +128,34 @@ static struct lwm2m_engine_obj_inst *em_create(uint16_t obj_inst_id)
     active_power[index] = 0.0;
     power_factor[index] = 1.0;
     energy[index] = 0.0;
+    low_pf_threshold[index] = 0.90;
+    low_pf[index] = false;
+    low_power_threshold[index] = 5.0;
+    low_power_threshold_low_dim[index] = 2.5;
+    low_power[index] = false;
+    high_power_threshold[index] = 100.0;
+    high_power_threshold_low_dim[index] = 50.0;
+    high_power[index] = false;
+    low_current_threshold[index] = 0.1;
+    low_current[index] = false;
+    high_current_threshold[index] = 5.0;
+    high_current[index] = false;
+    low_voltage_threshold[index] = 90.0;
+    low_voltage[index] = false;
+    high_voltage_threshold[index] = 260.0;
+    high_voltage[index] = false;
+    critical_inrush_threshold[index] = 5.0;
+    critical_inrush[index] = false;
+    min_inrush_current[index] = 0.0;
+    max_inrush_current[index] = 0.0;
+    latest_inrush_current[index] = 0.0;
+    reactive_power[index] = 0.0;
+    reactive_energy[index] = 0.0;
+    dimming_level[index] = 100;
+    timestamp[index] = 0;
+    fractional_timestamp[index] = 0.0;
+    quality_indicator[index] = 0;
+    quality_level[index] = 100;
 
     memset(res[index], 0, sizeof(res[index]));
     init_res_instance(res_inst[index], ARRAY_SIZE(res_inst[index]));
@@ -89,6 +173,62 @@ static struct lwm2m_engine_obj_inst *em_create(uint16_t obj_inst_id)
     INIT_OBJ_RES_DATA(UCIFI_EM_CUMULATED_ACTIVE_ENERGY_RID, res[index], i, res_inst[index], j,
                       &energy[index], sizeof(energy[index]));
     INIT_OBJ_RES_EXECUTE(UCIFI_EM_ENERGY_RESET_RID, res[index], i, reset_energy_cb);
+    INIT_OBJ_RES_DATA(UCIFI_EM_LOW_PF_THRESHOLD_RID, res[index], i, res_inst[index], j,
+                  &low_pf_threshold[index], sizeof(low_pf_threshold[index]));
+    INIT_OBJ_RES_DATA(UCIFI_EM_LOW_PF_RID, res[index], i, res_inst[index], j,
+                    &low_pf[index], sizeof(low_pf[index]));
+    INIT_OBJ_RES_DATA(UCIFI_EM_LOW_POWER_THRESHOLD_RID, res[index], i, res_inst[index], j,
+                    &low_power_threshold[index], sizeof(low_power_threshold[index]));
+    INIT_OBJ_RES_DATA(UCIFI_EM_LOW_POWER_THRESHOLD_LOW_DIM_RID, res[index], i, res_inst[index], j,
+                    &low_power_threshold_low_dim[index], sizeof(low_power_threshold_low_dim[index]));
+    INIT_OBJ_RES_DATA(UCIFI_EM_LOW_POWER_RID, res[index], i, res_inst[index], j,
+                    &low_power[index], sizeof(low_power[index]));
+    INIT_OBJ_RES_DATA(UCIFI_EM_HIGH_POWER_THRESHOLD_RID, res[index], i, res_inst[index], j,
+                    &high_power_threshold[index], sizeof(high_power_threshold[index]));
+    INIT_OBJ_RES_DATA(UCIFI_EM_HIGH_POWER_THRESHOLD_LOW_DIM_RID, res[index], i, res_inst[index], j,
+                    &high_power_threshold_low_dim[index], sizeof(high_power_threshold_low_dim[index]));
+    INIT_OBJ_RES_DATA(UCIFI_EM_HIGH_POWER_RID, res[index], i, res_inst[index], j,
+                    &high_power[index], sizeof(high_power[index]));
+    INIT_OBJ_RES_DATA(UCIFI_EM_LOW_CURRENT_THRESHOLD_RID, res[index], i, res_inst[index], j,
+                    &low_current_threshold[index], sizeof(low_current_threshold[index]));
+    INIT_OBJ_RES_DATA(UCIFI_EM_LOW_CURRENT_RID, res[index], i, res_inst[index], j,
+                    &low_current[index], sizeof(low_current[index]));
+    INIT_OBJ_RES_DATA(UCIFI_EM_HIGH_CURRENT_THRESHOLD_RID, res[index], i, res_inst[index], j,
+                    &high_current_threshold[index], sizeof(high_current_threshold[index]));
+    INIT_OBJ_RES_DATA(UCIFI_EM_HIGH_CURRENT_RID, res[index], i, res_inst[index], j,
+                    &high_current[index], sizeof(high_current[index]));
+    INIT_OBJ_RES_DATA(UCIFI_EM_LOW_VOLTAGE_THRESHOLD_RID, res[index], i, res_inst[index], j,
+                  &low_voltage_threshold[index], sizeof(low_voltage_threshold[index]));
+    INIT_OBJ_RES_DATA(UCIFI_EM_LOW_VOLTAGE_RID, res[index], i, res_inst[index], j,
+                    &low_voltage[index], sizeof(low_voltage[index]));
+    INIT_OBJ_RES_DATA(UCIFI_EM_HIGH_VOLTAGE_THRESHOLD_RID, res[index], i, res_inst[index], j,
+                    &high_voltage_threshold[index], sizeof(high_voltage_threshold[index]));
+    INIT_OBJ_RES_DATA(UCIFI_EM_HIGH_VOLTAGE_RID, res[index], i, res_inst[index], j,
+                    &high_voltage[index], sizeof(high_voltage[index]));
+    INIT_OBJ_RES_DATA(UCIFI_EM_CRITICAL_INRUSH_THRESHOLD_RID, res[index], i, res_inst[index], j,
+                    &critical_inrush_threshold[index], sizeof(critical_inrush_threshold[index]));
+    INIT_OBJ_RES_DATA(UCIFI_EM_CRITICAL_INRUSH_RID, res[index], i, res_inst[index], j,
+                    &critical_inrush[index], sizeof(critical_inrush[index]));
+    INIT_OBJ_RES_DATA(UCIFI_EM_MIN_INRUSH_CURRENT_RID, res[index], i, res_inst[index], j,
+                    &min_inrush_current[index], sizeof(min_inrush_current[index]));
+    INIT_OBJ_RES_DATA(UCIFI_EM_MAX_INRUSH_CURRENT_RID, res[index], i, res_inst[index], j,
+                    &max_inrush_current[index], sizeof(max_inrush_current[index]));
+    INIT_OBJ_RES_DATA(UCIFI_EM_LATEST_INRUSH_CURRENT_RID, res[index], i, res_inst[index], j,
+                    &latest_inrush_current[index], sizeof(latest_inrush_current[index]));
+    INIT_OBJ_RES_DATA(UCIFI_EM_REACTIVE_POWER_RID, res[index], i, res_inst[index], j,
+                    &reactive_power[index], sizeof(reactive_power[index]));
+    INIT_OBJ_RES_DATA(UCIFI_EM_REACTIVE_ENERGY_RID, res[index], i, res_inst[index], j,
+                    &reactive_energy[index], sizeof(reactive_energy[index]));
+    INIT_OBJ_RES_DATA(UCIFI_EM_DIMMING_LEVEL_RID, res[index], i, res_inst[index], j,
+                    &dimming_level[index], sizeof(dimming_level[index]));
+    INIT_OBJ_RES_DATA(UCIFI_EM_TIMESTAMP_RID, res[index], i, res_inst[index], j,
+                  &timestamp[index], sizeof(timestamp[index]));
+    INIT_OBJ_RES_DATA(UCIFI_EM_FRACTIONAL_TIMESTAMP_RID, res[index], i, res_inst[index], j,
+                    &fractional_timestamp[index], sizeof(fractional_timestamp[index]));
+    INIT_OBJ_RES_DATA(UCIFI_EM_MEASUREMENT_QUALITY_INDICATOR_RID, res[index], i, res_inst[index], j,
+                    &quality_indicator[index], sizeof(quality_indicator[index]));
+    INIT_OBJ_RES_DATA(UCIFI_EM_MEASUREMENT_QUALITY_LEVEL_RID, res[index], i, res_inst[index], j,
+                    &quality_level[index], sizeof(quality_level[index]));
 
     inst[index].resources = res[index];
     inst[index].resource_count = i;
