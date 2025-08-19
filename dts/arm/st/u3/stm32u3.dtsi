@@ -1,5 +1,6 @@
 /*
  * Copyright (c) 2025 STMicroelectronics
+ * Copyright (c) 2025 ZAL Zentrum für Angewandte Luftfahrtforschung GmbH
  *
  * SPDX-License-Identifier: Apache-2.0
  */
@@ -278,6 +279,17 @@
 			status = "disabled";
 		};
 
+		fdcan1: can@4000a400 {
+			compatible = "st,stm32-fdcan";
+			reg = <0x4000a400 0x400>, <0x4000ac00 0x350>;
+			reg-names = "m_can", "message_ram";
+			interrupts = <39 0>, <40 0>;
+			interrupt-names = "int0", "int1";
+			clocks = <&rcc STM32_CLOCK(APB1_2, 9)>;
+			bosch,mram-cfg = <0x0 28 8 3 3 0 3 3>;
+			status = "disabled";
+		};
+
 		i2c1: i2c@40005400 {
 			compatible = "st,stm32-i2c-v2";
 			reg = <0x40005400 0x400>;
@@ -376,6 +388,28 @@
 			reg = <0x40002c00 0x400>;
 			clocks = <&rcc STM32_CLOCK(APB1, 11)>;
 			interrupts = <0 0>;
+			status = "disabled";
+		};
+
+		sai1_a: sai1@40015404 {
+			compatible = "st,stm32-sai";
+			#address-cells = <1>;
+			#size-cells = <0>;
+			reg = <0x40015404 0x20>;
+			clocks = <&rcc STM32_CLOCK(APB2, 21)>;
+			dmas = <&gpdma1 1 36 (STM32_DMA_MODE_NORMAL | STM32_DMA_PRIORITY_HIGH |
+				STM32_DMA_16BITS)>;
+			status = "disabled";
+		};
+
+		sai1_b: sai1@40015424 {
+			compatible = "st,stm32-sai";
+			#address-cells = <1>;
+			#size-cells = <0>;
+			reg = <0x40015424 0x20>;
+			clocks = <&rcc STM32_CLOCK(APB2, 21)>;
+			dmas = <&gpdma1 0 37 (STM32_DMA_MODE_NORMAL | STM32_DMA_PRIORITY_HIGH |
+				STM32_DMA_16BITS)>;
 			status = "disabled";
 		};
 	};

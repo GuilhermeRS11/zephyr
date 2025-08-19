@@ -1207,11 +1207,13 @@ flagged.
         "BOOT_IMAGE_EXECUTABLE_RAM_START", # MCUboot setting
         "BOOT_MAX_IMG_SECTORS_AUTO", # Used in sysbuild
         "BOOT_RAM_LOAD", # Used in sysbuild for MCUboot configuration
+        "BOOT_RAM_LOAD_REVERT", # Used in sysbuild for MCUboot configuration
         "BOOT_SERIAL_BOOT_MODE",     # Used in (sysbuild-based) test/
                                      # documentation
         "BOOT_SERIAL_CDC_ACM",       # Used in (sysbuild-based) test
         "BOOT_SERIAL_ENTRANCE_GPIO", # Used in (sysbuild-based) test
         "BOOT_SERIAL_IMG_GRP_HASH",  # Used in documentation
+        "BOOT_SERIAL_UART",          # Used in (sysbuild-based) test
         "BOOT_SHARE_BACKEND_RETENTION", # Used in Kconfig text
         "BOOT_SHARE_DATA",           # Used in Kconfig text
         "BOOT_SHARE_DATA_BOOTINFO", # Used in (sysbuild-based) test
@@ -1276,8 +1278,12 @@ flagged.
         "MCUBOOT_SERIAL",           # Used in (sysbuild-based) test/
                                     # documentation
         "MCUMGR_GRP_EXAMPLE_OTHER_HOOK", # Used in documentation
+        "MCUX_HW_CORE", # Used in modules/hal_nxp/mcux/mcux-sdk-ng/device/device.cmake.
+                        # It is a variable used by MCUX SDK CMake.
         "MCUX_HW_DEVICE_CORE", # Used in modules/hal_nxp/mcux/mcux-sdk-ng/device/device.cmake.
                                # It is a variable used by MCUX SDK CMake.
+        "MCUX_HW_FPU_TYPE", # Used in modules/hal_nxp/mcux/mcux-sdk-ng/device/device.cmake.
+                            # It is a variable used by MCUX SDK CMake.
         "MISSING",
         "MODULES",
         "MODVERSIONS",        # Linux, in boards/xtensa/intel_adsp_cavs25/doc

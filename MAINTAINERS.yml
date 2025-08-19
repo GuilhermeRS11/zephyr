@@ -513,6 +513,8 @@ Bluetooth HCI:
     - sjanc
     - HoZHel
     - cvinayak
+    - PavelVPV
+    - HaavardRei
   files:
     - include/zephyr/drivers/bluetooth/
     - include/zephyr/drivers/bluetooth.h
@@ -537,6 +539,8 @@ Bluetooth Host:
     - sjanc
     - Thalley
     - cvinayak
+    - PavelVPV
+    - HaavardRei
   files:
     - doc/connectivity/bluetooth/
     - include/zephyr/bluetooth/
@@ -593,7 +597,7 @@ Bluetooth Host:
     - tests/bsim/bluetooth/hci_uart/
     - tests/bsim/bluetooth/ll/
     - tests/bsim/bluetooth/mesh/
-    - tests/bsim/bluetooth/tester/src/audio/
+    - tests/bsim/bluetooth/tester/
   labels:
     - "area: Bluetooth Host"
     - "area: Bluetooth"
@@ -658,6 +662,7 @@ Bluetooth Qualification:
     - doc/connectivity/bluetooth/autopts/
     - tests/bluetooth/qualification/
     - tests/bluetooth/tester/
+    - tests/bsim/bluetooth/tester/
   labels:
     - "area: Bluetooth Qualification"
     - "area: Bluetooth"
@@ -700,7 +705,7 @@ Bouffalolab Platforms:
     - dts/bindings/*/bflb,*
     - soc/bflb/
   labels:
-    - "platform: bouffalolab"
+    - "platform: Bouffalo Lab"
 
 Broadcom Platforms:
   status: odd fixes
@@ -1251,6 +1256,7 @@ Documentation Infrastructure:
     - samples/net/sockets/can/
     - samples/subsys/canbus/
     - scripts/west_commands/runners/canopen_program.py
+    - snippets/socketcan-native-sim/
     - subsys/canbus/
     - subsys/net/l2/canbus/
     - tests/drivers/build_all/can/
@@ -2783,9 +2789,8 @@ ITE Platforms:
 Infineon Platforms:
   status: maintained
   maintainers:
-    - ifyall
-  collaborators:
     - sreeramIfx
+  collaborators:
     - mcatee-infineon
     - talih0
   files:
@@ -3519,6 +3524,7 @@ Networking:
   files-exclude:
     - doc/connectivity/networking/api/gptp.rst
     - doc/connectivity/networking/api/ieee802154.rst
+    - doc/connectivity/networking/api/ocpp.rst
     - doc/connectivity/networking/api/ptp.rst
     - doc/connectivity/networking/api/wifi.rst
     - doc/connectivity/networking/api/http*.rst
@@ -3532,6 +3538,7 @@ Networking:
     - samples/net/sockets/coap_*/
     - samples/net/sockets/*http*/
     - samples/net/lwm2m_client/
+    - samples/net/ocpp/
     - samples/net/wifi/
     - samples/net/dhcpv4_client/
     - subsys/net/l2/ethernet/gptp/
@@ -3541,11 +3548,13 @@ Networking:
     - subsys/net/lib/config/ieee802154*
     - subsys/net/lib/http/
     - subsys/net/lib/lwm2m/
+    - subsys/net/lib/ocpp/
     - subsys/net/lib/ptp/
     - subsys/net/lib/tls_credentials/
     - subsys/net/lib/dhcpv4/
     - tests/net/dhcpv4/
     - tests/net/ieee802154/
+    - tests/net/lib/ocpp/
     - tests/net/lib/http*/
     - tests/net/wifi/
   labels:
@@ -3717,6 +3726,17 @@ Networking:
   tests:
     - net.ieee802154
 
+"Networking: OCPP":
+  status: maintained
+  maintainers:
+    - ssekar15
+  files:
+    - samples/net/ocpp/
+    - subsys/net/lib/ocpp/
+    - tests/net/lib/ocpp/
+  labels:
+    - "area: OCPP"
+
 "Networking: OpenThread":
   status: maintained
   maintainers:
@@ -3875,6 +3895,7 @@ Open AMP:
     - iuliana-prodan
   collaborators:
     - uLipe
+    - arnopo
   files:
     - lib/open-amp/
     - samples/subsys/ipc/openamp/
@@ -4345,6 +4366,14 @@ Secure storage:
     - "area: Secure storage"
   tests:
     - psa.secure_storage
+
+Seeed Studio Platforms:
+  status: odd fixes
+  files:
+    - boards/seeed/
+    - boards/shields/seeed_*/
+  labels:
+    - "platform: Seeed Studio"
 
 Sensor Subsystem:
   status: maintained
@@ -5206,10 +5235,9 @@ West:
 "West project: hal_cypress":
   status: maintained
   maintainers:
-    - ifyall
+    - sreeramIfx
   collaborators:
     - nashif
-    - sreeramIfx
     - mcatee-infineon
   files:
     - modules/Kconfig.cypress
@@ -5223,6 +5251,8 @@ West:
   collaborators:
     - LucasTambor
     - marekmatej
+    - raffarost
+    - wmrsouza
   files:
     - modules/Kconfig.esp32
   labels:
@@ -5235,6 +5265,7 @@ West:
     - wearyzen
   collaborators:
     - ithinuel
+    - ccli8
   files:
     - drivers/misc/ethos_u/
     - modules/hal_ethos_u/
@@ -5255,11 +5286,10 @@ West:
 "West project: hal_infineon":
   status: maintained
   maintainers:
-    - ifyall
+    - sreeramIfx
   collaborators:
     - parthitce
     - talih0
-    - sreeramIfx
     - mcatee-infineon
   files:
     - modules/Kconfig.infineon
@@ -5283,6 +5313,8 @@ West:
   status: maintained
   maintainers:
     - jvasanth1
+    - AzharMCHP
+    - scottwcpg
   collaborators:
     - VenkatKotakonda
     - albertofloyd
@@ -5296,9 +5328,16 @@ West:
   status: maintained
   maintainers:
     - anangl
+    - nika-nordic
+    - masz-nordic
   collaborators:
     - hubertmis
     - nordic-krch
+    - kl-cruz
+    - magp-nordic
+    - jaz1-nordic
+    - mif1-nordic
+    - adamkondraciuk
   files:
     - modules/hal_nordic/
   labels:
@@ -5448,6 +5487,7 @@ West:
   status: maintained
   maintainers:
     - vaishnavachath
+    - ssekar15
   files: []
   labels:
     - "platform: TI"
@@ -5529,6 +5569,15 @@ West:
     - modules/Kconfig.libmetal
   labels:
     - "area: AMP"
+
+"West project: libsbc":
+  status: maintained
+  maintainers:
+    - MarkWangChinese
+  files:
+    - modules/libsbc/
+  labels:
+    - "area: Audio"
 
 "West project: littlefs":
   status: odd fixes
@@ -5641,8 +5690,7 @@ West:
   maintainers:
     - aescolar
   collaborators:
-    - wopu-ot
-    - thoh-ot
+    - rugeGerritsen
   files: []
   labels:
     - "area: native port"
@@ -5878,6 +5926,7 @@ Xen Platform:
     - soc/xen/
     - boards/xen/
     - dts/bindings/xen/
+    - snippets/xen_dom0/
   labels:
     - "area: Xen Platform"
 
